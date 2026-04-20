@@ -1,0 +1,8 @@
+{
+  local_certs
+}
+
+# Add to /etc/hosts: 127.0.0.1 vsekai.local
+vsekai.local {
+  reverse_proxy /api/* zone-backend:4000
+}
