@@ -82,8 +82,10 @@ services:
     image: ghcr.io/v-sekai-fire/multiplayer-fabric-godot-server:latest
     environment:
       GODOT_HEADLESS: "1"
+      WEBTRANSPORT_HOST: "${ZONE_HOST:-zone-700a.chibifire.com}"
+      WEBTRANSPORT_PORT: "${ZONE_PORT:-443}"
     ports:
-      - "7777:7777/udp"   # WebTransport (QUIC)
+      - "443:443/udp"   # WebTransport (QUIC)
     depends_on:
       - zone-backend
 
