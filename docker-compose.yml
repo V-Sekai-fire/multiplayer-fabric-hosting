@@ -15,35 +15,32 @@ services:
       timeout: 5s
       retries: 10
 
-  # S3-compatible object storage (replaces Tigris locally)
-  # Admin UI: http://localhost:9001  user: minioadmin  pass: minioadmin
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: minioadmin
-      MINIO_ROOT_PASSWORD: minioadmin
+  # S3-compatible gateway backed by local POSIX filesystem (replaces Tigris locally)
+  versitygw:
+    image: ghcr.io/versity/versitygw:latest
+    command: -a minioadmin -s minioadmin posix /data
     ports:
-      - "7070:9000"   # S3 API — matches AWS_S3_ENDPOINT default in aria_storage
-      - "9001:9001"   # MinIO web console
+      - "7070:7070"   # S3 API
     volumes:
-      - miniodata:/data
+      - versitygwdata:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:7070/"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  minio-init:
-    image: minio/mc:latest
+  versitygw-init:
+    image: amazon/aws-cli:latest
     depends_on:
-      minio:
+      versitygw:
         condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: us-east-1
     entrypoint: >
       /bin/sh -c "
-        mc alias set local http://minio:9000 minioadmin minioadmin &&
-        mc mb --ignore-existing local/uro-uploads &&
-        mc anonymous set download local/uro-uploads
+        aws --endpoint-url http://versitygw:7070 s3 mb s3://uro-uploads --region us-east-1 || true
       "
 
   # HTTP reverse proxy — HTTPS + HTTP/3 for zone-backend API
@@ -72,14 +69,14 @@ services:
       FRONTEND_URL: "https://vsekai.local/"
       PORT: "4000"
       AWS_S3_BUCKET: "uro-uploads"
-      AWS_S3_ENDPOINT: "http://minio:9000"
+      AWS_S3_ENDPOINT: "http://versitygw:7070"
       AWS_ACCESS_KEY_ID: "minioadmin"
       AWS_SECRET_ACCESS_KEY: "minioadmin"
       MIX_ENV: "prod"
     depends_on:
       crdb:
         condition: service_healthy
-      minio-init:
+      versitygw-init:
         condition: service_completed_successfully
     ports:
       - "4000:4000"
@@ -97,6 +94,6 @@ services:
 
 volumes:
   crdbdata:
-  miniodata:
+  versitygwdata:
   caddy_data:
   caddy_config:
