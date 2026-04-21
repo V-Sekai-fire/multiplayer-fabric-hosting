@@ -1,7 +1,7 @@
 services:
   # Generate CockroachDB TLS certificates into a shared volume.
   # Runs as uid 1000 (cockroach) so that the crdb server can read the 600-permission key files.
-  # Zone-backend runs as root and can read any file regardless of ownership.
+  # Zone-backend runs as root and can read any file regardless of permissions.
   crdb-certs-init:
     image: ghcr.io/v-sekai/cockroach:latest
     platform: linux/amd64
@@ -68,12 +68,15 @@ services:
         aws --endpoint-url http://versitygw:7070 s3 mb s3://uro-uploads --region us-east-1 || true
       "
 
-  zone-backend:
+  # Phoenix API — named 'uro' so Caddy can proxy to it.
+  # The baker spawner calls URO_URL=http://uro:4000 from inside Docker.
+  uro:
     build:
       context: ../multiplayer-fabric-zone-backend
       dockerfile: Dockerfile
       args:
         - COMPILE_PHASE=true
+    image: multiplayer-fabric-hosting-uro
     environment:
       COMPILE_PHASE: "false"
       DATABASE_URL: "postgresql://root@crdb:26257/vsekai?sslmode=verify-full"
@@ -92,6 +95,7 @@ services:
       AWS_ACCESS_KEY_ID: "minioadmin"
       AWS_SECRET_ACCESS_KEY: "minioadmin"
       VERSITYGW_URL: "http://versitygw:7070"
+      URO_URL: "http://uro:4000"
       BAKER_TOKEN: "${BAKER_TOKEN:-}"
       BAKER_NETWORK: "multiplayer-fabric-hosting_default"
       MIX_ENV: "prod"
@@ -104,7 +108,36 @@ services:
       versitygw-init:
         condition: service_completed_successfully
 
-  # Cloudflare Tunnel — exposes zone-backend to the internet via Cloudflare edge.
+  # Next.js frontend.
+  # Built after 'uro' so the Dockerfile can copy openapi.json from the uro image.
+  frontend:
+    build:
+      context: ../multiplayer-fabric-zone-backend/frontend
+      dockerfile: Dockerfile
+      args:
+        uro_image: multiplayer-fabric-hosting-uro
+    environment:
+      NEXT_PUBLIC_ORIGIN: "${URL_ROOT:-https://hub-700a.chibifire.com}"
+      NEXT_PUBLIC_API_ORIGIN: "${URL:-https://hub-700a.chibifire.com/api/v1}"
+      API_ORIGIN: "http://uro:4000"
+      NEXT_PUBLIC_TURNSTILE_SITEKEY: "${TURNSTILE_SITEKEY:-1x00000000000000000000AA}"
+    depends_on:
+      - uro
+
+  # Caddy reverse proxy — named 'zone-backend' so the Cloudflare Tunnel dashboard
+  # route (hub-700a.chibifire.com → http://zone-backend:4000) requires no changes.
+  # Routes: /api/v1/* → uro:4000 (prefix stripped), /* → frontend:3000
+  zone-backend:
+    image: caddy:2.9.1-alpine
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddydata:/data
+      - caddyconfig:/config
+    depends_on:
+      - uro
+      - frontend
+
+  # Cloudflare Tunnel — exposes zone-backend (Caddy) to the internet via Cloudflare edge.
   # Cloudflare edge handles TLS termination and serves HTTP/1.1 + HTTP/3 to clients.
   # Routing (hostname → service) is configured in the Cloudflare dashboard.
   # Get a token: https://one.dash.cloudflare.com/ → Networks → Tunnels → Create tunnel
@@ -115,7 +148,7 @@ services:
       - zone-backend
     restart: unless-stopped
 
-  # Godot zone server — WebTransport/HTTP3 direct on UDP 7777.
+  # Godot zone server — WebTransport/HTTP3 direct on UDP 443.
   # Cloudflare Tunnel does not proxy QUIC sessions, so this remains direct.
   # Clients connect with cert-hash pinning against the self-signed cert.
   zone-server:
@@ -133,3 +166,5 @@ volumes:
   crdbdata:
   crdbcerts:
   versitygwdata:
+  caddydata:
+  caddyconfig:
