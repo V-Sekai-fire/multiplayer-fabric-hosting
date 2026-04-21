@@ -13,6 +13,11 @@ hub-700a.chibifire.com {
 		reverse_proxy uro:4000
 	}
 
+	# desync chunk server — content-addressed zone asset chunks
+	handle /chunks/* {
+		reverse_proxy desync:9090
+	}
+
 	# Everything else → Next.js frontend
 	handle {
 		reverse_proxy frontend:3000

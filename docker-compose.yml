@@ -66,7 +66,36 @@ services:
     entrypoint: >
       /bin/sh -c "
         aws --endpoint-url http://versitygw:7070 s3 mb s3://uro-uploads --region us-east-1 || true
+        aws --endpoint-url http://versitygw:7070 s3 mb s3://zone-chunks --region us-east-1 || true
       "
+
+  # desync chunk server — serves CAIBX content-addressed zone asset chunks.
+  # Clients entering a zone receive an index URL; they fetch only the chunks
+  # they don't already have via HTTP GET /chunks/<sha256>.
+  desync:
+    build:
+      context: ../multiplayer-fabric-desync
+      dockerfile: Dockerfile
+    command: >
+      chunk-server
+      --store s3+http://versitygw:7070/zone-chunks
+      --listen :9090
+      --writeable
+    environment:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_REGION: us-east-1
+    ports:
+      - "9090:9090"
+    depends_on:
+      versitygw-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget -qO/dev/null http://localhost:9090/ 2>&1; [ $$? -ne 4 ]"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   # Phoenix API — named 'uro' so Caddy can proxy to it.
   # The baker spawner calls URO_URL=http://uro:4000 from inside Docker.
