@@ -89,7 +89,6 @@ services:
       PORT: "4000"
       PHOENIX_KEY_BASE: "${PHOENIX_KEY_BASE:-bNDe+pg86uL938fQA8QGYCJ4V7fE5RAxoQ8grq9drPpO7mZ0oEMSNapKLiA48smR}"
       JOKEN_SIGNER: "${JOKEN_SIGNER:-gqawCOER09ZZjaN8W2QM9XT9BeJSZ9qc}"
-      CLERK_ISSUER: "${CLERK_ISSUER:-https://moral-mule-32.clerk.accounts.dev}"
       AWS_S3_BUCKET: "uro-uploads"
       AWS_S3_ENDPOINT: "http://versitygw:7070"
       AWS_ACCESS_KEY_ID: "minioadmin"
