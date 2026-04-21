@@ -65,7 +65,12 @@ services:
       AWS_S3_ENDPOINT: "http://versitygw:7070"
       AWS_ACCESS_KEY_ID: "minioadmin"
       AWS_SECRET_ACCESS_KEY: "minioadmin"
+      VERSITYGW_URL: "http://versitygw:7070"
+      BAKER_TOKEN: "${BAKER_TOKEN:-}"
+      BAKER_NETWORK: "multiplayer-fabric-hosting_default"
       MIX_ENV: "prod"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
       crdb:
         condition: service_healthy
