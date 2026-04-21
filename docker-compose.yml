@@ -1,17 +1,39 @@
 services:
+  # Generate CockroachDB TLS certificates into a shared volume.
+  # Runs as uid 1000 (cockroach) so that the crdb server can read the 600-permission key files.
+  # Zone-backend runs as root and can read any file regardless of ownership.
+  crdb-certs-init:
+    image: ghcr.io/v-sekai/cockroach:latest
+    platform: linux/amd64
+    user: "1000:1000"
+    volumes:
+      - crdbcerts:/certs
+    entrypoint: >
+      /bin/sh -c "
+        set -e
+        [ -f /certs/ca.crt ] && exit 0
+        cockroach cert create-ca --certs-dir=/certs --ca-key=/certs/ca.key --allow-ca-key-reuse
+        cockroach cert create-node localhost crdb 127.0.0.1 ::1 --certs-dir=/certs --ca-key=/certs/ca.key
+        cockroach cert create-client root --certs-dir=/certs --ca-key=/certs/ca.key
+      "
+
   # CockroachDB single-node (our fork)
   # Admin UI: http://localhost:8080
   crdb:
     image: ghcr.io/v-sekai/cockroach:latest
     platform: linux/amd64
-    command: start-single-node --insecure --listen-addr=:26257 --http-addr=:8080
+    command: start-single-node --certs-dir=/certs --listen-addr=:26257 --http-addr=:8080
     ports:
       - "26257:26257"
       - "8181:8080"   # admin UI — 8080 occupied by rvk-api-service
     volumes:
       - crdbdata:/cockroach/cockroach-data
+      - crdbcerts:/certs:ro
+    depends_on:
+      crdb-certs-init:
+        condition: service_completed_successfully
     healthcheck:
-      test: ["CMD", "cockroach", "sql", "--insecure", "-e", "SELECT 1"]
+      test: ["CMD", "cockroach", "sql", "--certs-dir=/certs", "-e", "SELECT 1"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -53,7 +75,10 @@ services:
         - COMPILE_PHASE=true
     environment:
       COMPILE_PHASE: "false"
-      DATABASE_URL: "postgresql://root@crdb:26257/vsekai?sslmode=disable"
+      DATABASE_URL: "postgresql://root@crdb:26257/vsekai?sslmode=verify-full"
+      CRDB_CA_CERT: "/certs/ca.crt"
+      CRDB_CLIENT_CERT: "/certs/client.root.crt"
+      CRDB_CLIENT_KEY: "/certs/client.root.key"
       URL: "${URL:-https://hub-700a.chibifire.com/api/v1/}"
       ROOT_ORIGIN: "${ROOT_ORIGIN:-https://hub-700a.chibifire.com}"
       FRONTEND_URL: "${FRONTEND_URL:-https://hub-700a.chibifire.com/}"
@@ -71,6 +96,7 @@ services:
       MIX_ENV: "prod"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - crdbcerts:/certs:ro
     depends_on:
       crdb:
         condition: service_healthy
@@ -104,4 +130,5 @@ services:
 
 volumes:
   crdbdata:
+  crdbcerts:
   versitygwdata:
