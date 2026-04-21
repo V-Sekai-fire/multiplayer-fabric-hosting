@@ -184,8 +184,11 @@ services:
   # Godot zone server — WebTransport/HTTP3 direct on UDP 443.
   # Cloudflare Tunnel does not proxy QUIC sessions, so this remains direct.
   # Clients connect with cert-hash pinning against the self-signed cert.
+  # Requires the server image to be built and pushed first:
+  #   docker compose --profile zone up -d
   zone-server:
-    image: ghcr.io/v-sekai-fire/multiplayer-fabric-godot-server:latest
+    profiles: [zone]
+    image: ghcr.io/v-sekai-fire/zone-fabric:latest
     environment:
       GODOT_HEADLESS: "1"
       WEBTRANSPORT_HOST: "${ZONE_HOST:-zone-700a.chibifire.com}"
