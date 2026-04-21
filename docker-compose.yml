@@ -129,6 +129,8 @@ services:
   # Routes: /api/v1/* → uro:4000 (prefix stripped), /* → frontend:3000
   zone-backend:
     image: caddy:2.9.1-alpine
+    ports:
+      - "4000:4000"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddydata:/data
@@ -143,7 +145,7 @@ services:
   # Get a token: https://one.dash.cloudflare.com/ → Networks → Tunnels → Create tunnel
   cloudflared:
     image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate run --protocol http2 --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       - zone-backend
     restart: unless-stopped
