@@ -124,31 +124,32 @@ services:
     depends_on:
       - uro
 
-  # Caddy reverse proxy — named 'zone-backend' so the Cloudflare Tunnel dashboard
-  # route (hub-700a.chibifire.com → http://zone-backend:4000) requires no changes.
+  # Caddy reverse proxy — terminates TLS with Cloudflare Origin Certificate.
+  # Cloudflare proxies (orange cloud) in Full (strict) mode; port 443 must be forwarded
+  # on the host router to this machine.
   # Routes: /api/v1/* → uro:4000 (prefix stripped), /* → frontend:3000
   zone-backend:
     image: caddy:2.9.1-alpine
     ports:
-      - "4000:4000"
+      - "80:80"
+      - "443:443"
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
+      - ./certs:/etc/caddy/certs:ro
       - caddydata:/data
       - caddyconfig:/config
     depends_on:
       - uro
       - frontend
 
-  # Cloudflare Tunnel — exposes zone-backend (Caddy) to the internet via Cloudflare edge.
-  # Cloudflare edge handles TLS termination and serves HTTP/1.1 + HTTP/3 to clients.
-  # Routing (hostname → service) is configured in the Cloudflare dashboard.
-  # Get a token: https://one.dash.cloudflare.com/ → Networks → Tunnels → Create tunnel
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    command: tunnel --no-autoupdate run --protocol http2 --token ${CLOUDFLARE_TUNNEL_TOKEN}
-    depends_on:
-      - zone-backend
-    restart: unless-stopped
+  # Cloudflare Tunnel — disabled; direct port-443 serving replaces it.
+  # Re-enable by uncommenting if direct port forwarding is unavailable.
+  # cloudflared:
+  #   image: cloudflare/cloudflared:latest
+  #   command: tunnel --no-autoupdate run --protocol http2 --token ${CLOUDFLARE_TUNNEL_TOKEN}
+  #   depends_on:
+  #     - zone-backend
+  #   restart: unless-stopped
 
   # Godot zone server — WebTransport/HTTP3 direct on UDP 443.
   # Cloudflare Tunnel does not proxy QUIC sessions, so this remains direct.

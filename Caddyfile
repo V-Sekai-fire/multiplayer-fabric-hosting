@@ -1,5 +1,8 @@
-# Plain HTTP — Cloudflare Tunnel handles TLS at the edge.
-:4000 {
+# HTTPS with Cloudflare Origin Certificate.
+# Cloudflare acts as reverse proxy (orange cloud); SSL mode must be Full (strict).
+hub-700a.chibifire.com {
+	tls /etc/caddy/certs/origin.crt /etc/caddy/certs/origin.key
+
 	# Phoenix API (path prefix stripped before proxying)
 	handle_path /api/v1/* {
 		reverse_proxy uro:4000
