@@ -95,6 +95,8 @@ services:
       AWS_SECRET_ACCESS_KEY: "minioadmin"
       VERSITYGW_URL: "http://versitygw:7070"
       URO_URL: "http://uro:4000"
+      ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
+      USER_PASSWORD: "${USER_PASSWORD}"
       BAKER_TOKEN: "${BAKER_TOKEN:-}"
       BAKER_NETWORK: "multiplayer-fabric-hosting_default"
       MIX_ENV: "prod"
