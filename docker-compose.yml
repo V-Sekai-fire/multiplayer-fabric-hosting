@@ -3,10 +3,11 @@ services:
   # Admin UI: http://localhost:8080
   crdb:
     image: ghcr.io/v-sekai/cockroach:latest
-    command: start-single-node --insecure --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080
+    platform: linux/amd64
+    command: start-single-node --insecure --listen-addr=:26257 --http-addr=:8080
     ports:
       - "26257:26257"
-      - "8080:8080"
+      - "8181:8080"   # admin UI — 8080 occupied by rvk-api-service
     volumes:
       - crdbdata:/cockroach/cockroach-data
     healthcheck:
@@ -24,10 +25,11 @@ services:
     volumes:
       - versitygwdata:/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:7070/"]
+      test: ["CMD", "sh", "-c", "wget -qO/dev/null http://localhost:7070/ 2>&1 | grep -q 'HTTP'"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 5s
 
   versitygw-init:
     image: amazon/aws-cli:latest
@@ -47,12 +49,17 @@ services:
     build:
       context: ../multiplayer-fabric-zone-backend
       dockerfile: Dockerfile
+      args:
+        - COMPILE_PHASE=true
     environment:
+      COMPILE_PHASE: "false"
       DATABASE_URL: "postgresql://root@crdb:26257/vsekai?sslmode=disable"
-      URL: "${URL:-https://vsekai.example.com/api/v1/}"
-      ROOT_ORIGIN: "${ROOT_ORIGIN:-https://vsekai.example.com}"
-      FRONTEND_URL: "${FRONTEND_URL:-https://vsekai.example.com/}"
+      URL: "${URL:-https://hub-700a.chibifire.com/api/v1/}"
+      ROOT_ORIGIN: "${ROOT_ORIGIN:-https://hub-700a.chibifire.com}"
+      FRONTEND_URL: "${FRONTEND_URL:-https://hub-700a.chibifire.com/}"
       PORT: "4000"
+      PHOENIX_KEY_BASE: "${PHOENIX_KEY_BASE:-bNDe+pg86uL938fQA8QGYCJ4V7fE5RAxoQ8grq9drPpO7mZ0oEMSNapKLiA48smR}"
+      JOKEN_SIGNER: "${JOKEN_SIGNER:-gqawCOER09ZZjaN8W2QM9XT9BeJSZ9qc}"
       AWS_S3_BUCKET: "uro-uploads"
       AWS_S3_ENDPOINT: "http://versitygw:7070"
       AWS_ACCESS_KEY_ID: "minioadmin"
