@@ -7,7 +7,7 @@ services:
     platform: linux/amd64
     user: "0:0"
     volumes:
-      - crdbcerts:/certs
+      - ./certs/crdb:/certs
     entrypoint: >
       /bin/sh -c "
         set -e
@@ -29,7 +29,7 @@ services:
       - "8181:8080"   # admin UI — 8080 occupied by rvk-api-service
     volumes:
       - crdbdata:/cockroach/cockroach-data
-      - crdbcerts:/certs:ro
+      - ./certs/crdb:/certs:ro
     depends_on:
       crdb-certs-init:
         condition: service_completed_successfully
@@ -138,7 +138,7 @@ services:
       MIX_ENV: "prod"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - crdbcerts:/certs:ro
+      - ./certs/crdb:/certs:ro
     depends_on:
       crdb:
         condition: service_healthy
@@ -207,7 +207,6 @@ services:
 
 volumes:
   crdbdata:
-  crdbcerts:
   versitygwdata:
   caddydata:
   caddyconfig:
