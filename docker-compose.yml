@@ -193,6 +193,7 @@ services:
   # For additional zones, run separate zone-fabric containers pointing at this stack's Uro API.
   zone-server:
     image: ghcr.io/v-sekai-fire/zone-fabric:latest
+    platform: linux/amd64
     environment:
       GODOT_HEADLESS: "1"
       WEBTRANSPORT_HOST: "${ZONE_HOST}"
