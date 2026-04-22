@@ -188,21 +188,17 @@ services:
   #     - zone-backend
   #   restart: unless-stopped
 
-  # Godot zone server — optional single embedded zone (profile: zone).
+  # Godot zone server — one embedded zone instance.
   # Zone servers have multiplicity 0..∞; each registers itself with Uro at startup.
-  # This service is one convenience instance. For additional zones, run separate
-  # zone-fabric containers that point at this stack's Uro API.
-  # Cloudflare Tunnel does not proxy QUIC sessions — UDP 443 must be forwarded directly.
-  # Activate with: docker compose --profile zone up -d
+  # For additional zones, run separate zone-fabric containers pointing at this stack's Uro API.
   zone-server:
-    profiles: [zone]
     image: ghcr.io/v-sekai-fire/zone-fabric:latest
     environment:
       GODOT_HEADLESS: "1"
       WEBTRANSPORT_HOST: "${ZONE_HOST}"
-      WEBTRANSPORT_PORT: "${ZONE_PORT:-443}"
+      WEBTRANSPORT_PORT: "${ZONE_PORT:-7443}"
     ports:
-      - "443:443/udp"   # WebTransport (QUIC)
+      - "7443:7443/udp"   # WebTransport (QUIC)
     depends_on:
       - zone-backend
 
