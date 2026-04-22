@@ -42,7 +42,7 @@ services:
   # S3-compatible gateway backed by local POSIX filesystem (replaces Tigris locally)
   versitygw:
     image: ghcr.io/versity/versitygw:latest
-    command: -a minioadmin -s minioadmin posix /data
+    command: -a ${AWS_ACCESS_KEY_ID} -s ${AWS_SECRET_ACCESS_KEY} posix /data
     ports:
       - "7070:7070"   # S3 API
     volumes:
@@ -60,8 +60,8 @@ services:
       versitygw:
         condition: service_healthy
     environment:
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       AWS_DEFAULT_REGION: us-east-1
     entrypoint: >
       /bin/sh -c "
@@ -82,8 +82,8 @@ services:
       --listen :9090
       --writeable
     environment:
-      AWS_ACCESS_KEY_ID: minioadmin
-      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       AWS_REGION: us-east-1
     ports:
       - "9090:9090"
@@ -120,14 +120,21 @@ services:
       JOKEN_SIGNER: "${JOKEN_SIGNER:-gqawCOER09ZZjaN8W2QM9XT9BeJSZ9qc}"
       AWS_S3_BUCKET: "uro-uploads"
       AWS_S3_ENDPOINT: "http://versitygw:7070"
-      AWS_ACCESS_KEY_ID: "minioadmin"
-      AWS_SECRET_ACCESS_KEY: "minioadmin"
+      AWS_ACCESS_KEY_ID: "${AWS_ACCESS_KEY_ID}"
+      AWS_SECRET_ACCESS_KEY: "${AWS_SECRET_ACCESS_KEY}"
       VERSITYGW_URL: "http://versitygw:7070"
       URO_URL: "http://uro:4000"
       ADMIN_PASSWORD: "${ADMIN_PASSWORD}"
       USER_PASSWORD: "${USER_PASSWORD}"
       BAKER_TOKEN: "${BAKER_TOKEN:-}"
       BAKER_NETWORK: "multiplayer-fabric-hosting_default"
+      SENDGRID_API_KEY: "${SENDGRID_API_KEY:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-1x0000000000000000000000000000000AA}"
+      SIGNUP_API_KEY: "${SIGNUP_API_KEY:-}"
+      OAUTH2_GITHUB_CLIENT_ID: "${OAUTH2_GITHUB_CLIENT_ID:-}"
+      OAUTH2_GITHUB_CLIENT_SECRET: "${OAUTH2_GITHUB_CLIENT_SECRET:-}"
+      OAUTH2_DISCORD_CLIENT_ID: "${OAUTH2_DISCORD_CLIENT_ID:-}"
+      OAUTH2_DISCORD_CLIENT_SECRET: "${OAUTH2_DISCORD_CLIENT_SECRET:-}"
       MIX_ENV: "prod"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
