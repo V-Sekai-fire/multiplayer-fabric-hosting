@@ -12,7 +12,7 @@ One-command self-hosted MMOG stack: zone API, WebTransport zone server, and cont
 | `frontend` | Next.js web UI | 3000 (internal) |
 | `desync` | CAIBX chunk server — delta-sync zone asset delivery | 9090 (internal), `/chunks/*` via Caddy |
 | `zone-backend` | Caddy reverse proxy — TLS termination, routes all HTTP traffic | 80, 443 |
-| `zone-server` | Godot zone server — WebTransport/QUIC game sessions | 443/UDP |
+| `zone-server` _(profile: zone)_ | Godot zone server — optional embedded zone instance; additional zones register with Uro independently | 443/UDP |
 
 ## Prerequisites
 
@@ -46,7 +46,12 @@ All tuneable values are in `.env`. The `generate-secrets.sh` script populates th
 URL=https://your-domain.example/api/v1/
 ROOT_ORIGIN=https://your-domain.example
 FRONTEND_URL=https://your-domain.example/
-ZONE_HOST=zone.your-domain.example
+```
+
+Zone servers have multiplicity 0..∞ and register themselves with Uro at startup — no static list is required in `.env`. To run the optional embedded zone server alongside the hub, add `ZONE_HOST=zone.your-domain.example` and activate the profile:
+
+```sh
+docker compose --profile zone up -d
 ```
 
 Replace the `tls` line in `Caddyfile` with `tls your@email.com` to use Let's Encrypt instead of a Cloudflare Origin Certificate.

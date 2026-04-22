@@ -188,17 +188,18 @@ services:
   #     - zone-backend
   #   restart: unless-stopped
 
-  # Godot zone server — WebTransport/HTTP3 direct on UDP 443.
-  # Cloudflare Tunnel does not proxy QUIC sessions, so this remains direct.
-  # Clients connect with cert-hash pinning against the self-signed cert.
-  # Requires the server image to be built and pushed first:
-  #   docker compose --profile zone up -d
+  # Godot zone server — optional single embedded zone (profile: zone).
+  # Zone servers have multiplicity 0..∞; each registers itself with Uro at startup.
+  # This service is one convenience instance. For additional zones, run separate
+  # zone-fabric containers that point at this stack's Uro API.
+  # Cloudflare Tunnel does not proxy QUIC sessions — UDP 443 must be forwarded directly.
+  # Activate with: docker compose --profile zone up -d
   zone-server:
     profiles: [zone]
     image: ghcr.io/v-sekai-fire/zone-fabric:latest
     environment:
       GODOT_HEADLESS: "1"
-      WEBTRANSPORT_HOST: "${ZONE_HOST:-zone-700a.chibifire.com}"
+      WEBTRANSPORT_HOST: "${ZONE_HOST}"
       WEBTRANSPORT_PORT: "${ZONE_PORT:-443}"
     ports:
       - "443:443/udp"   # WebTransport (QUIC)
