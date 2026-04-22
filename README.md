@@ -12,13 +12,13 @@ One-command self-hosted MMOG stack: zone API, WebTransport zone server, and cont
 | `frontend` | Next.js web UI | 3000 (internal) |
 | `desync` | CAIBX chunk server — delta-sync zone asset delivery | 9090 (internal), `/chunks/*` via Caddy |
 | `zone-backend` | Caddy reverse proxy — TLS termination, routes all HTTP traffic | 80, 443 |
-| `zone-server` _(profile: zone)_ | Godot zone server — optional embedded zone instance; additional zones register with Uro independently | 443/UDP |
+| `zone-server` | Godot zone server — embedded zone instance; additional zones register with Uro independently | 7443/UDP |
 
 ## Prerequisites
 
 - Docker and Docker Compose v2
 - `openssl` (for secret generation)
-- Ports 80, 443 (TCP) and 443 (UDP) open on your host
+- Ports 80, 443 (TCP) and 7443 (UDP) open on your host
 
 ## Quickstart
 
@@ -48,10 +48,11 @@ ROOT_ORIGIN=https://your-domain.example
 FRONTEND_URL=https://your-domain.example/
 ```
 
-Zone servers have multiplicity 0..∞ and register themselves with Uro at startup — no static list is required in `.env`. To run the optional embedded zone server alongside the hub, add `ZONE_HOST=zone.your-domain.example` and activate the profile:
+Zone servers have multiplicity 0..∞ and register themselves with Uro at startup — no static list is required in `.env`. The embedded zone server starts automatically with `docker compose up -d`. Set `ZONE_HOST` to your domain so the zone server registers its public address with Uro:
 
-```sh
-docker compose --profile zone up -d
+```
+ZONE_HOST=zone.your-domain.example
+ZONE_PORT=7443
 ```
 
 Replace the `tls` line in `Caddyfile` with `tls your@email.com` to use Let's Encrypt instead of a Cloudflare Origin Certificate.
@@ -59,7 +60,7 @@ Replace the `tls` line in `Caddyfile` with `tls your@email.com` to use Let's Enc
 ## Connecting a Godot client
 
 1. Start the stack with `docker compose up -d`.
-2. In your Godot project, create a `FabricMMOGTransportPeer` and call `create_client("127.0.0.1", 443)`.
+2. In your Godot project, create a `FabricMMOGTransportPeer` and call `create_client("127.0.0.1", 7443)`.
 3. The peer attempts WebTransport first and falls back to WebSocket automatically.
 4. On zone entry, the server emits a desync index URL. The client fetches only the asset chunks it does not already have from `https://your-host/chunks/`.
 
