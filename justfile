@@ -35,7 +35,16 @@ baker-image:
       --load \
       {{baker_dir}}
 
+zone_server_src  := repo_root / "multiplayer-fabric-zone-server"
 godot_bin_default := repo_root / "multiplayer-fabric-godot" / "bin" / "godot.macos.editor.dev.arm64"
+
+# Generate TLS cert + .env secrets (safe to re-run; cert regenerates only when missing)
+generate-secrets:
+    bash {{justfile_directory()}}/generate-secrets.sh
+
+# Start the Elixir zone server locally (generates cert first if needed)
+zone-server-local: generate-secrets
+    cd {{zone_server_src}} && ZONE_PORT=7443 mix run --no-halt
 
 # Run Phase 1 GO headless observer test against local zone server (needs zone-up first)
 go-test godot_bin=godot_bin_default:
