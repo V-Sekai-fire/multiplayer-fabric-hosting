@@ -86,7 +86,7 @@ services:
       CRDB_CA_CERT: "/certs/ca.crt"
       CRDB_CLIENT_CERT: "/certs/client.root.crt"
       CRDB_CLIENT_KEY: "/certs/client.root.key"
-      URL: "${URL:-https://hub-700a.chibifire.com/api/v1/}"
+      URL: "${URL:-https://hub-700a.chibifire.com/}"
       ROOT_ORIGIN: "${ROOT_ORIGIN:-https://hub-700a.chibifire.com}"
       FRONTEND_URL: "${FRONTEND_URL:-https://hub-700a.chibifire.com/}"
       PORT: "4000"
@@ -129,7 +129,7 @@ services:
         uro_image: multiplayer-fabric-hosting-uro
     environment:
       NEXT_PUBLIC_ORIGIN: "${URL_ROOT:-https://hub-700a.chibifire.com}"
-      NEXT_PUBLIC_API_ORIGIN: "${URL:-https://hub-700a.chibifire.com/api/v1}"
+      NEXT_PUBLIC_API_ORIGIN: "${NEXT_PUBLIC_API_ORIGIN:-https://hub-700a.chibifire.com}"
       API_ORIGIN: "http://uro:4000"
       NEXT_PUBLIC_TURNSTILE_SITEKEY: "${TURNSTILE_SITEKEY:-1x00000000000000000000AA}"
     depends_on:
