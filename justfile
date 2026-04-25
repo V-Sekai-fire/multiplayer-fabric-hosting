@@ -35,19 +35,20 @@ baker-image:
       --load \
       {{baker_dir}}
 
+godot_mono := repo_root / "multiplayer-fabric-godot" / "bin" / "godot.macos.editor.dev.arm64.mono"
+
 # Run Phase 1 GO headless observer test against local zone server (needs zone-up first)
-go-test godot_bin=`which godot`:
+go-test godot_bin=godot_mono:
+    #!/usr/bin/env bash
+    set -euo pipefail
     {{godot_bin}} --headless \
       --path {{abyssal_src}} \
       --script scripts/headless_log_observer.gd \
       -- --host=127.0.0.1 --port=7443 \
          --dump-json=/tmp/go_entities.json --frames=600
-    python3 -c "
-import json, sys
-e = json.load(open('/tmp/go_entities.json'))
-print(f'GO: {len(e)} entities')
-sys.exit(0 if e else 1)
-"
+    count=$(python3 -c "import json; print(len(json.load(open('/tmp/go_entities.json'))))")
+    echo "GO: $count entities"
+    [ "$count" -gt 0 ]
 
 # Build zone-fabric image then start the full stack
 zone-up: zone-fabric-image
