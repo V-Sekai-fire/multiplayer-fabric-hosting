@@ -1,4 +1,5 @@
 repo_root    := justfile_directory() / ".."
+abyssal_src  := repo_root / "multiplayer-fabric-abyssal"
 godot_src    := repo_root / "multiplayer-fabric-godot"
 zone_console := repo_root / "multiplayer-fabric-zone-console"
 docker_src   := repo_root / "docker-multiplayer-fabric"
@@ -33,6 +34,20 @@ baker-image:
       --tag {{baker_tag}} \
       --load \
       {{baker_dir}}
+
+# Run Phase 1 GO headless observer test against local zone server (needs zone-up first)
+go-test godot_bin=`which godot`:
+    {{godot_bin}} --headless \
+      --path {{abyssal_src}} \
+      --script scripts/headless_log_observer.gd \
+      -- --host=127.0.0.1 --port=7443 \
+         --dump-json=/tmp/go_entities.json --frames=600
+    python3 -c "
+import json, sys
+e = json.load(open('/tmp/go_entities.json'))
+print(f'GO: {len(e)} entities')
+sys.exit(0 if e else 1)
+"
 
 # Build zone-fabric image then start the full stack
 zone-up: zone-fabric-image
