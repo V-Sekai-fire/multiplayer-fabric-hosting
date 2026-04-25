@@ -1,3 +1,4 @@
 .env
 certs/origin.key
 certs/crdb/
+/certs
