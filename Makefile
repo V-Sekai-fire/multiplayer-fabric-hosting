@@ -5,7 +5,7 @@ DOCKERIGNORE    := $(GODOT_SRC)/.github/docker/.dockerignore-godot-src
 CACHE_DIR       := /tmp/zone-fabric-buildkit-cache
 TAG             := zone-fabric:local
 
-.PHONY: zone-fabric-image zone-up zone-down
+.PHONY: zone-fabric-image baker-image zone-up zone-down
 
 # Build the zone-fabric Docker image from local Godot source.
 # Scons cache is preserved across builds via BuildKit cache mount.
@@ -23,6 +23,9 @@ zone-fabric-image:
 # Start the full stack using the locally built image.
 zone-up: zone-fabric-image
 	ZONE_SERVER_IMAGE=$(TAG) docker compose up -d
+
+baker-image:
+	bash build-baker.sh
 
 zone-down:
 	docker compose down
