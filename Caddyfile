@@ -1,7 +1,7 @@
 # Local HTTP listener for QA testing — no TLS, no Host matching.
 # Use API_ORIGIN=http://localhost:8888 when running Playwright against the local stack.
 :8888 {
-	handle_path /api/v1/* {
+	handle /api/v1/* {
 		reverse_proxy uro:4000
 	}
 	handle /socket/* {
@@ -20,8 +20,8 @@
 hub-700a.chibifire.com {
 	tls /etc/caddy/certs/origin.crt /etc/caddy/certs/origin.key
 
-	# Phoenix API (path prefix stripped before proxying)
-	handle_path /api/v1/* {
+	# Phoenix API — prefix is handled inside Phoenix, not stripped here.
+	handle /api/v1/* {
 		reverse_proxy uro:4000
 	}
 
