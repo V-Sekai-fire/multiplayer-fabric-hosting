@@ -35,10 +35,10 @@ baker-image:
       --load \
       {{baker_dir}}
 
-godot_mono := repo_root / "multiplayer-fabric-godot" / "bin" / "godot.macos.editor.dev.arm64.mono"
+godot_bin_default := repo_root / "multiplayer-fabric-godot" / "bin" / "godot.macos.editor.dev.arm64"
 
 # Run Phase 1 GO headless observer test against local zone server (needs zone-up first)
-go-test godot_bin=godot_mono:
+go-test godot_bin=godot_bin_default:
     #!/usr/bin/env bash
     set -euo pipefail
     {{godot_bin}} --headless \
