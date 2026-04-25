@@ -6,7 +6,7 @@ baker_dir    := repo_root / "multiplayer-fabric-baker" / "docker" / "build-proje
 cache_dir    := env_var_or_default("HOME", "/root") / ".cache" / "zone-fabric-buildkit"
 
 git_url_docker := "https://github.com/V-Sekai-fire/docker-multiplayer-fabric.git"
-git_url_vsekai := "https://github.com/V-Sekai/v-sekai-game.git"
+git_url_vsekai := "https://github.com/V-Sekai-fire/multiplayer-fabric-abyssal.git"
 
 zone_tag  := "zone-fabric:local"
 baker_tag := "multiplayer-fabric-baker:local"
