@@ -1,9 +1,12 @@
-GODOT_SRC       ?= $(realpath ../multiplayer-fabric-godot)
+GODOT_SRC        ?= $(realpath ../multiplayer-fabric-godot)
 ZONE_CONSOLE_SRC ?= $(realpath ../multiplayer-fabric-zone-console)
-DOCKERFILE      := $(GODOT_SRC)/.github/docker/Dockerfile.zone-fabric-build
-DOCKERIGNORE    := $(GODOT_SRC)/.github/docker/.dockerignore-godot-src
-CACHE_DIR       := /tmp/zone-fabric-buildkit-cache
-TAG             := zone-fabric:local
+DOCKER_SRC       ?= $(realpath ../docker-multiplayer-fabric)
+DOCKERFILE       := $(DOCKER_SRC)/Dockerfile.zone-fabric-build
+CACHE_DIR        := /tmp/zone-fabric-buildkit-cache
+TAG              := zone-fabric:local
+
+export GIT_URL_DOCKER  := https://github.com/V-Sekai-fire/docker-multiplayer-fabric.git
+export GIT_URL_VSEKAI  := https://github.com/V-Sekai/v-sekai-game.git
 
 .PHONY: zone-fabric-image baker-image zone-up zone-down
 
@@ -18,7 +21,7 @@ zone-fabric-image:
 		--cache-to   type=local,dest=$(CACHE_DIR),mode=max \
 		--tag $(TAG) \
 		--load \
-		.
+		$(DOCKER_SRC)
 
 # Start the full stack using the locally built image.
 zone-up: zone-fabric-image

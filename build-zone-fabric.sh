@@ -4,7 +4,8 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GODOT_SRC="$REPO_ROOT/multiplayer-fabric-godot"
 ZONE_CONSOLE_SRC="$REPO_ROOT/multiplayer-fabric-zone-console"
-DOCKERFILE="$GODOT_SRC/.github/docker/Dockerfile.zone-fabric-build"
+DOCKERFILE="$REPO_ROOT/docker-multiplayer-fabric/Dockerfile.zone-fabric-build"
+GIT_URL_DOCKER="https://github.com/V-Sekai-fire/docker-multiplayer-fabric.git"
 CACHE_DIR="${HOME}/.cache/zone-fabric-buildkit"
 TAG="zone-fabric:local"
 
