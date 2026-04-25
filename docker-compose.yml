@@ -144,6 +144,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8888:8888"   # local QA: HTTP API without TLS (API_ORIGIN=http://localhost:8888)
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./certs:/etc/caddy/certs:ro

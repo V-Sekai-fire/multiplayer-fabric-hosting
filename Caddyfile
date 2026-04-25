@@ -1,3 +1,20 @@
+# Local HTTP listener for QA testing — no TLS, no Host matching.
+# Use API_ORIGIN=http://localhost:8888 when running Playwright against the local stack.
+:8888 {
+	handle_path /api/v1/* {
+		reverse_proxy uro:4000
+	}
+	handle /socket/* {
+		reverse_proxy uro:4000
+	}
+	handle /uploads/* {
+		reverse_proxy uro:4000
+	}
+	handle /chunks/* {
+		reverse_proxy uro:4000
+	}
+}
+
 # HTTPS with Cloudflare Origin Certificate.
 # Cloudflare acts as reverse proxy (orange cloud); SSL mode must be Full (strict).
 hub-700a.chibifire.com {
@@ -15,6 +32,11 @@ hub-700a.chibifire.com {
 
 	# aria-storage chunk server (replaces desync) — content-addressed zone asset chunks
 	handle /chunks/* {
+		reverse_proxy uro:4000
+	}
+
+	# Phoenix channel socket (WebSocket upgrade for zone:* channels)
+	handle /socket/* {
 		reverse_proxy uro:4000
 	}
 
