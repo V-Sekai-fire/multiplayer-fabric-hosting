@@ -2,3 +2,4 @@
 certs/origin.key
 certs/crdb/
 /certs
+.DS_Store
